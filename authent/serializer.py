@@ -17,21 +17,11 @@ class UserSignupSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        # Extract custom fields
-        full_name = validated_data.pop("full_name")
-        location = validated_data.pop("location")
-        school_name = validated_data.pop("school_name")
-
-        # Create user with base fields
         user = CustomUser.objects.create_user(
             email=validated_data["email"],
-            password=validated_data["password"]
+            password=validated_data["password"],
+            full_name=validated_data["full_name"],
+            location=validated_data["location"],
+            school_name=validated_data["school_name"],
         )
-
-        # Assign custom fields
-        user.full_name = full_name
-        user.location = location
-        user.school_name = school_name
-        user.save()
-
         return user
