@@ -12,8 +12,6 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from datetime import timedelta
 from pathlib import Path
-from decouple import config
-import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,7 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
-    'authent'
+    'authent',
+    'activity'
 ]
 
 
@@ -139,8 +138,40 @@ SIMPLE_JWT = {
 }
 
 
-BRAVO_API_KEY = config("BRAVO_API_KEY")
+BRAVO_API_KEY = "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"
 BREVO_EMAIL_ENDPOINT = "https://api.brevo.com/v3/smtp/email"
 BRAVO_TOKEN_REFRESH_ENDPOINT = 'https://api.brevo.com/v3/oauth/token'
 EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
 
+# import os
+# BRAVO_API_KEY = os.getenv("BRAVO_API_KEY")
+
+import os
+from celery import Celery
+
+# Set the default Django settings module
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'auth.settings')
+
+# Create a Celery instance
+app = Celery('auth')
+
+# Use Django's settings for configuration
+app.config_from_object('django.conf:settings', namespace='CELERY')
+
+# Auto-discover Celery tasks from Django apps
+app.autodiscover_tasks()
+
+
+# settings.py
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Replace with your Celery broker (Redis, RabbitMQ, etc.)
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_TIMEZONE = 'UTC'
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+SITE_URL = "http://127.0.0.1:8000"
