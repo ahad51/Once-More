@@ -16,6 +16,11 @@ class UserSignupSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
     full_name = serializers.CharField()
 
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("A user with this email already exists.")
+        return value
+
     def create(self, validated_data):
         user = User.objects.create_user(
             email=validated_data["email"],
@@ -31,6 +36,7 @@ class UserSignupSerializer(serializers.Serializer):
         send_email_verification.delay(user.email, verification_url)
 
         return user
+
 
 
 class VerifyEmailSerializer(serializers.Serializer):
