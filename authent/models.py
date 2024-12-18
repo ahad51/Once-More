@@ -10,7 +10,7 @@ class CustomUserManager(BaseUserManager):
 
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
-        user.is_active = False  # Users are inactive until email is verified
+        user.is_active = False
         user.save(using=self._db)
         return user
 
@@ -31,5 +31,5 @@ class CustomUser(AbstractUser):
 
     objects = CustomUserManager()
 
-    def __str__(self):
+    def __str__(self): 
         return self.email

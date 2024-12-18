@@ -19,5 +19,7 @@ from django.urls import path, include  # Correct import
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-        path('api/', include('authent.urls'))  # This now uses the correct include
+    path('api/', include('authent.urls')),  # This now uses the correct include
+    path('api/', include('activity.urls'))  # This now uses the correct include
+
 ]
