@@ -138,7 +138,7 @@ SIMPLE_JWT = {
 }
 
 
-BRAVO_API_KEY = "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"
+BRAVO_API_KEY = "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"
 BREVO_EMAIL_ENDPOINT = "https://api.brevo.com/v3/smtp/email"
 BRAVO_TOKEN_REFRESH_ENDPOINT = 'https://api.brevo.com/v3/oauth/token'
 EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
