@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -144,8 +147,7 @@ BREVO_EMAIL_ENDPOINT = "https://api.brevo.com/v3/smtp/email"
 BRAVO_TOKEN_REFRESH_ENDPOINT = 'https://api.brevo.com/v3/oauth/token'
 EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
 
-# import os
-# BRAVO_API_KEY = os.getenv("BRAVO_API_KEY")
+
 
 import os
 from celery import Celery
@@ -176,3 +178,4 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 SITE_URL = "http://127.0.0.1:8000"
+
