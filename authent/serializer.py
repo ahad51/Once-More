@@ -1,3 +1,4 @@
+import http
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -90,7 +91,7 @@ class ForgotPasswordSerializer(serializers.Serializer):
         token = token_generator.make_token(user)
 
         # Dynamically use SITE_URL
-        reset_url = f"{settings.SITE_URL}/api/password-reset-confirm/{urlsafe_base64_encode(str(user.id).encode())}/{token}/"
+        reset_url = f"http://localhost:3000/reset-password/{urlsafe_base64_encode(str(user.id).encode())}/{token}/"
         send_password_reset_email.delay(user.email, reset_url, user.full_name)
 
         return {"message": "Reset email sent"}

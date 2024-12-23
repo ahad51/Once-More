@@ -14,13 +14,12 @@ from datetime import timedelta
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+
+# Load environment variables from a .env file
 load_dotenv()
-
-
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -33,7 +32,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-AUTH_USER_MODEL = "authent.CustomUser"  
+AUTH_USER_MODEL = "authent.CustomUser"
 
 # Application definition
 INSTALLED_APPS = [
@@ -43,15 +42,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'rest_framework',
-    'rest_framework_simplejwt.token_blacklist',
     'authent',
-    'activity'
+    'activity',
 ]
 
-
-
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # Ensure CORS middleware is loaded first
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -81,10 +79,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'auth.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -92,90 +88,67 @@ DATABASES = {
     }
 }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
+# JWT Settings
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS': True,  # Rotate refresh tokens on refresh
-    'BLACKLIST_AFTER_ROTATION': True,  # Blacklist old refresh tokens
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
 }
 
+# Email settings
 BRAVO_API_KEY = os.getenv('BRAVO_API_KEY', 'default_if_missing')
 BREVO_EMAIL_ENDPOINT = "https://api.brevo.com/v3/smtp/email"
 BRAVO_TOKEN_REFRESH_ENDPOINT = 'https://api.brevo.com/v3/oauth/token'
 EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
 
-
-
-import os
-from celery import Celery
-
-# Set the default Django settings module
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'auth.settings')
-
-# Create a Celery instance
-app = Celery('auth')
-
-# Use Django's settings for configuration
-app.config_from_object('django.conf:settings', namespace='CELERY')
-
-# Auto-discover Celery tasks from Django apps
-app.autodiscover_tasks()
-
-
-# settings.py
-
-CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Replace with your Celery broker (Redis, RabbitMQ, etc.)
+# Celery settings
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_TIMEZONE = 'UTC'
 
+# Site URL for local development
+SITE_URL = "http://127.0.0.1:8000"
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# CORS settings
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # React development server
+    "http://127.0.0.1:3000",  # Alternative React development server
+]
 
-SITE_URL = "http://18.234.102.244:8000"
+# Debugging: Uncomment for testing purposes only (do not use in production)
+# CORS_ALLOW_ALL_ORIGINS = True
 
+CORS_ALLOW_ALL_ORIGINS = True
