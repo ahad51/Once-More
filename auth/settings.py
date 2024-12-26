@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'authent',
     'activity',
+    'curriculum',
 ]
 
 MIDDLEWARE = [
