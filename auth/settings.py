@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'authent',
     'activity',
     'curriculum',
+    'payments'
 ]
 
 MIDDLEWARE = [
@@ -153,3 +154,13 @@ CORS_ALLOWED_ORIGINS = [
 # CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'default_if_missing')
+STRIPE_PUBLISHABLE_KEY=os.getenv('STRIPE_PUBLISHABLE_KEY', 'default_if_missing')
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+}
