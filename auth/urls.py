@@ -22,6 +22,8 @@ urlpatterns = [
     path('api/', include('authent.urls')),  # This now uses the correct include
     path('api/', include('activity.urls')), # This now uses the correct include
     path('api/', include('curriculum.urls')),  # This now uses the correct include
-    path('api/', include('payments.urls'))  # This now uses the correct include
+    path('api/', include('payments.urls')),  # This now uses the correct include
+    path('api/', include('tasks.urls'))  # This now uses the correct include
+
 
 ]

@@ -47,7 +47,8 @@ INSTALLED_APPS = [
     'authent',
     'activity',
     'curriculum',
-    'payments'
+    'payments',
+    'tasks'
 ]
 
 MIDDLEWARE = [
