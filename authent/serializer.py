@@ -69,7 +69,7 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("Invalid credentials.")
         
         if not user.is_active:
-            raise serializers.ValidationError("Account not activated.")
+            raise serializers.ValidationError("Account not verified.")
         
         if not user.check_password(data["password"]):
             raise serializers.ValidationError("Invalid password.")

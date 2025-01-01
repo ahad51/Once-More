@@ -133,10 +133,17 @@ SIMPLE_JWT = {
 BRAVO_API_KEY = os.getenv('BRAVO_API_KEY', 'default_if_missing')
 BREVO_EMAIL_ENDPOINT = "https://api.brevo.com/v3/smtp/email"
 BRAVO_TOKEN_REFRESH_ENDPOINT = 'https://api.brevo.com/v3/oauth/token'
-EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+DEFAULT_FROM_EMAIL='ahad518660@gnmail.com'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp-relay.brevo.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True  
+EMAIL_HOST_USER = os.getenv('ahad51860@gmail.com')  # Your Brevo account email (from .env or direct)
+EMAIL_HOST_PASSWORD =os.getenv('BRAVO_API_KEY', 'default_if_missing')  # Use the API key as the password
+
 
 # Celery settings
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = 'redis://localhost:6379/1'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
@@ -165,3 +172,10 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
+DJANGO_ADMIN_URL='http://127.0.0.1:8000/admin/login/?next=/admin/'
+
+
+# CELERY_TASK_ALWAYS_EAGER = True
+# CELERY_TASK_EAGER_PROPAGATES = True
+
+

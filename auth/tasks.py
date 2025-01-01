@@ -1,9 +1,14 @@
-from celery import shared_task
 import logging
 import requests
-from auth import settings  # Ensure your settings module is properly configured
+from auth import settings
+from django.contrib.auth import get_user_model
+from celery import shared_task
+from authent.models import CustomUser
 
+# Configure logging
 logger = logging.getLogger(__name__)
+
+User = get_user_model()
 
 @shared_task
 def send_email_verification(user_email, verification_url):
@@ -31,6 +36,7 @@ def send_email_verification(user_email, verification_url):
     
 @shared_task
 def send_password_reset_email(email, reset_url, full_name):
+    logger.info(f"Sending password reset email to {email}...")
     email_data = {
         "sender": {"email": "ahad51860@gmail.com"},
         "to": [{"email": email}],
