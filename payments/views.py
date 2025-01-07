@@ -55,14 +55,14 @@ class SubscriptionView(APIView):
                 
                 user = CustomUser.objects.create_user(username=username, email=email)
                 user.is_staff = True  # Make the user an admin
-                user.is_superuser = True
+                user.is_superuser = False
                 user.save()
                 logger.info(f"User {user.email} created and set as admin.")
             else:
                 user.save()
                 logger.info(f"Password reset for existing user {user.email}")
                 user.is_staff = True  # Make the user an admin
-                user.is_superuser = True
+                user.is_superuser = False
                 user.save()
 
             # Generate a random admin email

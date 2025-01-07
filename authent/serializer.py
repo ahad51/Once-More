@@ -2,13 +2,11 @@ import http
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.utils.http import urlsafe_base64_decode,urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework_simplejwt.tokens import RefreshToken
 from auth.tasks import send_email_verification, send_password_reset_email
 
-
 User = get_user_model()
-
 
 from django.conf import settings  # Import settings
 
@@ -16,6 +14,8 @@ class UserSignupSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
     full_name = serializers.CharField()
+    is_school_admin = serializers.BooleanField(required=False, default=False)
+    is_teacher = serializers.BooleanField(required=False, default=False)
 
     def validate_email(self, value):
         if User.objects.filter(email=value).exists():
@@ -23,11 +23,16 @@ class UserSignupSerializer(serializers.Serializer):
         return value
 
     def create(self, validated_data):
+        is_school_admin = validated_data.pop("is_school_admin", False)
+        is_teacher = validated_data.pop("is_teacher", False)
+        
         user = User.objects.create_user(
             email=validated_data["email"],
             password=validated_data["password"],
             full_name=validated_data["full_name"],
-            is_active=False
+            is_active=False,  # Account is inactive until email is verified
+            is_school_admin=is_school_admin,
+            is_teacher=is_teacher
         )
         token_generator = PasswordResetTokenGenerator()
         token = token_generator.make_token(user)
@@ -37,7 +42,6 @@ class UserSignupSerializer(serializers.Serializer):
         send_email_verification.delay(user.email, verification_url)
 
         return user
-
 
 
 class VerifyEmailSerializer(serializers.Serializer):
@@ -95,7 +99,6 @@ class ForgotPasswordSerializer(serializers.Serializer):
         send_password_reset_email.delay(user.email, reset_url, user.full_name)
 
         return {"message": "Reset email sent"}
-
 
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
