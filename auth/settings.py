@@ -180,3 +180,10 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 SITE_URL = "http://18.234.102.244:8000"
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # React development server
+    "http://127.0.0.1:3000",  # Alternative React development server
+]
+CORS_ALLOW_ALL_ORIGINS = True
+
+
