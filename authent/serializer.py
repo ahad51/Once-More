@@ -5,10 +5,9 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework_simplejwt.tokens import RefreshToken
 from auth.tasks import send_email_verification, send_password_reset_email
-
 User = get_user_model()
-
 from django.conf import settings  # Import settings
+from django.db import IntegrityError
 
 class UserSignupSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -25,15 +24,19 @@ class UserSignupSerializer(serializers.Serializer):
     def create(self, validated_data):
         is_school_admin = validated_data.pop("is_school_admin", False)
         is_teacher = validated_data.pop("is_teacher", False)
-        
-        user = User.objects.create_user(
-            email=validated_data["email"],
-            password=validated_data["password"],
-            full_name=validated_data["full_name"],
-            is_active=False,  # Account is inactive until email is verified
-            is_school_admin=is_school_admin,
-            is_teacher=is_teacher
-        )
+
+        try:
+            user = User.objects.create_user(
+                email=validated_data["email"],
+                password=validated_data["password"],
+                full_name=validated_data["full_name"],
+                is_active=False,  # Account is inactive until email is verified
+                is_school_admin=is_school_admin,
+                is_teacher=is_teacher
+            )
+        except IntegrityError:
+            raise serializers.ValidationError({"email": "A user with this email already exists."})
+
         token_generator = PasswordResetTokenGenerator()
         token = token_generator.make_token(user)
 
@@ -42,6 +45,7 @@ class UserSignupSerializer(serializers.Serializer):
         send_email_verification.delay(user.email, verification_url)
 
         return user
+
 
 
 class VerifyEmailSerializer(serializers.Serializer):
