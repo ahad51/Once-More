@@ -154,8 +154,8 @@ SITE_URL = "http://127.0.0.1:8000"
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # React development server
-    "http://127.0.0.1:3000",  # Alternative React development server
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
 ]
 
 # Debugging: Uncomment for testing purposes only (do not use in production)
