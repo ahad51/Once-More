@@ -7,7 +7,6 @@ class TaskAdmin(admin.ModelAdmin):
     list_filter = ('category', 'created_at')
     search_fields = ('title', 'category')
     readonly_fields = ('created_at', 'updated_at')
-
     def has_module_permission(self, request):
         # Allow access to the module only for superusers
         return request.user.is_superuser
