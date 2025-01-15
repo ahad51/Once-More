@@ -1,11 +1,11 @@
 from django.contrib import admin
-from .models import Task  # Import your model
+from .models import Topics  # Import your model
 
-@admin.register(Task)
-class TaskAdmin(admin.ModelAdmin):
-    list_display = ('title', 'category', 'created_at')
-    list_filter = ('category', 'created_at')
-    search_fields = ('title', 'category')
+@admin.register(Topics)
+class TopicsAdmin(admin.ModelAdmin):
+    list_display = ('title', 'created_at')
+    list_filter = ('title', 'created_at')
+    search_fields = ('title', 'topics')
     readonly_fields = ('created_at', 'updated_at')
     def has_module_permission(self, request):
         # Allow access to the module only for superusers
