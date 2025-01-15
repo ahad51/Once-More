@@ -1,20 +1,7 @@
 from rest_framework import serializers
-from .models import Curriculum, CPDModule, CPDProgress
+from .models import Curriculum
 
-# Curriculum serializer
 class CurriculumSerializer(serializers.ModelSerializer):
     class Meta:
         model = Curriculum
-        fields = '__all__'
-
-# CPD Module serializer
-class CPDModuleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CPDModule
-        fields = '__all__'
-
-# CPD Progress serializer
-class CPDProgressSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CPDProgress
-        fields = '__all__'
+        fields = ['id', 'title', 'description', 'link', 'image']

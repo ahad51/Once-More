@@ -48,7 +48,11 @@ INSTALLED_APPS = [
     'activity',
     'curriculum',
     'payments',
-    'tasks'
+    'tasks',
+    'topicTasks',
+    'addTasks',
+    'cpd',
+    'work'
 ]
 
 MIDDLEWARE = [
