@@ -2,8 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializer import (
-    UserSignupSerializer, LoginSerializer,
-    ForgotPasswordSerializer, PasswordResetConfirmSerializer, VerifyEmailSerializer
+    UserSignupSerializer,
+    ForgotPasswordSerializer, PasswordResetConfirmSerializer, VerifyEmailSerializer,CustomUserLoginSerializer,TeacherLoginSerializer
 )
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -51,12 +51,29 @@ class VerifyEmailView(APIView):
 
 class LoginView(APIView):
     def post(self, request):
-        serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
-            return Response(serializer.validated_data, status=status.HTTP_200_OK)
+        email = request.data.get("email")
+        password = request.data.get("password")
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Try to find a CustomUser first
+        user = User.objects.filter(email=email).first()
 
+        if user:
+            # Use CustomUserLoginSerializer for CustomUser
+            serializer = CustomUserLoginSerializer(data=request.data)
+            if serializer.is_valid():
+                return Response(serializer.validated_data, status=status.HTTP_200_OK)
+        
+        # If no CustomUser, try Teacher
+        teacher = Teacher.objects.filter(email=email).first()
+        
+        if teacher:
+            # Use TeacherLoginSerializer for Teacher
+            serializer = TeacherLoginSerializer(data=request.data)
+            if serializer.is_valid():
+                return Response(serializer.validated_data, status=status.HTTP_200_OK)
+
+        # If neither user nor teacher, return error
+        return Response({"detail": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
 
 class ForgotPasswordView(APIView):
     def post(self, request):
