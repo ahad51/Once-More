@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.contrib.auth.hashers import make_password, check_password
@@ -43,10 +44,11 @@ class CustomUser(AbstractUser):
 
 # Teacher Model
 class Teacher(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     full_name = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, blank=True, null=True)  # Allow blank for default email
     is_active = models.BooleanField(default=True)
-    password = models.CharField(max_length=128)
+    password = models.CharField(max_length=128, default='password')  # Hashing will be done manually
 
     def set_password(self, raw_password):
         self.password = make_password(raw_password)

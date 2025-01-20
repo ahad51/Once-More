@@ -10,6 +10,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_decode
 import logging
 
+from .models import Teacher
 
 User = get_user_model()
 logger = logging.getLogger(__name__)

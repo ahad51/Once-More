@@ -14,17 +14,24 @@ User = get_user_model()
 def send_teacher_credentials_email(teacher_id, plain_password):
     try:
         teacher = Teacher.objects.get(id=teacher_id)
+        
+        # Ensure the teacher has an associated user object with an email
+        if teacher.user:
+            teacher_email = teacher.user.email
+        else:
+            raise ValueError(f"Teacher with ID {teacher_id} does not have an associated user account.")
+
         # Prepare the email content
         email_data = {
             "sender": {"email": "ahad51860@gmail.com"},
-            "to": [{"email": teacher.email}],
+            "to": [{"email": teacher_email}],
             "subject": "Your Teacher Account Credentials",
             "htmlContent": f"""
                 <html>
                     <body>
                         <p>Dear {teacher.full_name},</p>
                         <p>Your teacher account has been created. Here are your login credentials:</p>
-                        <p>Email: {teacher.email}</p>
+                        <p>Email: {teacher_email}</p>
                         <p>Password: {plain_password}</p>
                         <p>You can log in at: <a href="http://127.0.0.1:8000/">http://127.0.0.1:8000/</a></p>
                     </body>
@@ -33,7 +40,7 @@ def send_teacher_credentials_email(teacher_id, plain_password):
             "textContent": f"""
                 Dear {teacher.full_name},
                 Your teacher account has been created. Here are your login credentials:
-                Email: {teacher.email}
+                Email: {teacher_email}
                 Password: {plain_password}
                 You can log in at: http://127.0.0.1:8000/
             """,
@@ -50,10 +57,10 @@ def send_teacher_credentials_email(teacher_id, plain_password):
         )
         
         if response.status_code == 201:
-            logger.info(f"Teacher credentials email successfully sent to {teacher.email}")
+            logger.info(f"Teacher credentials email successfully sent to {teacher_email}")
         else:
             # Log the failure response details
-            logger.error(f"Failed to send teacher credentials email to {teacher.email}. Response: {response.status_code}")
+            logger.error(f"Failed to send teacher credentials email to {teacher_email}. Response: {response.status_code}")
             logger.error(f"Response body: {response.text}")
     
     except Teacher.DoesNotExist:
