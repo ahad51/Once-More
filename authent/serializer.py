@@ -1,15 +1,16 @@
-import http
+# serializers.py
+from django.conf import settings
+from django.db import IntegrityError
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework_simplejwt.tokens import RefreshToken
 from auth.tasks import send_email_verification, send_password_reset_email
 from authent.models import Teacher
+from django.contrib.auth import get_user_model, authenticate
+
+
 User = get_user_model()
-from django.conf import settings  # Import settings
-from django.db import IntegrityError
-from .authentication import EmailBackend
 
 class UserSignupSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -33,27 +34,108 @@ class UserSignupSerializer(serializers.Serializer):
         is_school_admin = validated_data.pop("is_school_admin", False)
         is_teacher = validated_data.pop("is_teacher", False)
 
+        if is_teacher:
+            # Teacher should be created as an active user
+            is_active = True
+        else:
+            # Set inactive only for CustomUser (non-teachers)
+            is_active = False
+
         try:
             user = User.objects.create_user(
                 email=validated_data["email"],
                 password=validated_data["password"],
                 full_name=validated_data["full_name"],
-                is_active=False,  # Account is inactive until email is verified
+                is_active=is_active,  # Account is inactive for CustomUser, active for Teacher
                 is_school_admin=is_school_admin,
                 is_teacher=is_teacher
             )
         except IntegrityError:
             raise serializers.ValidationError({"email": "A user with this email already exists."})
 
+        # If user is CustomUser, send verification email
+        if not is_teacher:
+            token_generator = PasswordResetTokenGenerator()
+            token = token_generator.make_token(user)
+
+            # Dynamically use SITE_URL
+            verification_url = f"{settings.SITE_URL}/api/verify-email/{urlsafe_base64_encode(str(user.id).encode())}/{token}/"
+            send_email_verification.delay(user.email, verification_url)
+
+        return user
+
+
+class CustomUserLoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        email = data["email"]
+        password = data["password"]
+
+        user = authenticate(username=email, password=password)
+
+        if user is None:
+            raise serializers.ValidationError("Invalid credentials.")
+        
+        if not user.is_active:
+            raise serializers.ValidationError("Account is not active.")
+        
+        return {
+            "access": str(RefreshToken.for_user(user).access_token),
+            "refresh": str(RefreshToken.for_user(user)),
+        }
+
+
+class TeacherLoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+    role = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        email = data.get("email")
+        password = data.get("password")
+        role = data.get("role")
+
+        # Use the authenticate method to check credentials
+        user = authenticate(request=self.context.get("request"), username=email, password=password)
+        if user is None:
+            raise serializers.ValidationError("Invalid credentials.")
+
+        # Validate role against the authenticated user
+        if role == "school_admin" and not user.is_school_admin:
+            raise serializers.ValidationError("This user is not a School Admin.")
+        if role == "teacher" and not user.is_teacher:
+            raise serializers.ValidationError("This user is not a Teacher.")
+
+        # Generate JWT tokens for the user
+        refresh = RefreshToken.for_user(user)
+
+        return {
+            "access_token": str(refresh.access_token),
+            "refresh_token": str(refresh),
+            "role": role,
+            "message": f"{role.capitalize()} login successful",
+        }
+
+
+                            
+
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate(self, data):
+        user = User.objects.filter(email=data["email"]).first()
+        if not user:
+            raise serializers.ValidationError("No user found with this email.")
         token_generator = PasswordResetTokenGenerator()
         token = token_generator.make_token(user)
 
         # Dynamically use SITE_URL
-        verification_url = f"{settings.SITE_URL}/api/verify-email/{urlsafe_base64_encode(str(user.id).encode())}/{token}/"
-        send_email_verification.delay(user.email, verification_url)
+        reset_url = f"http://localhost:3000/reset-password/{urlsafe_base64_encode(str(user.id).encode())}/{token}/"
+        send_password_reset_email.delay(user.email, reset_url, user.full_name)
 
-        return user
-
+        return {"message": "Reset email sent"}
 
 
 class VerifyEmailSerializer(serializers.Serializer):
@@ -73,77 +155,6 @@ class VerifyEmailSerializer(serializers.Serializer):
             raise serializers.ValidationError("Invalid or expired token.")
         except Exception:
             raise serializers.ValidationError("Invalid token or user.")
-
-
-class CustomUserLoginSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
-
-    def validate(self, data):
-        email = data["email"]
-        password = data["password"]
-
-        user = User.objects.filter(email=email).first()
-
-        if user is None:
-            raise serializers.ValidationError("Invalid credentials.")
-        
-        if not user.is_active:
-            raise serializers.ValidationError("Account is not active.")
-        
-        if not user.check_password(password):
-            raise serializers.ValidationError("Invalid password.")
-        
-        # Generate JWT token for CustomUser
-        refresh = RefreshToken.for_user(user)
-        return {
-            "access": str(refresh.access_token),
-            "refresh": str(refresh),
-        }
-    
-class TeacherLoginSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
-
-    def validate(self, data):
-        email = data["email"]
-        password = data["password"]
-
-        # Check if it's a teacher or user with the same login logic (via the custom backend)
-        user_or_teacher = EmailBackend().authenticate(None, username=email, password=password)
-        
-        if user_or_teacher is None:
-            raise serializers.ValidationError("Invalid credentials.")
-        
-        if not user_or_teacher.is_active:
-            raise serializers.ValidationError("Account is not active.")
-        
-        # Generate JWT token for authenticated user or teacher
-        refresh = RefreshToken.for_user(user_or_teacher)
-        
-        return {
-            "access": str(refresh.access_token),
-            "refresh": str(refresh),
-        }
-
-
-
-
-class ForgotPasswordSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-
-    def validate(self, data):
-        user = User.objects.filter(email=data["email"]).first()
-        if not user:
-            raise serializers.ValidationError("No user found with this email.")
-        token_generator = PasswordResetTokenGenerator()
-        token = token_generator.make_token(user)
-
-        # Dynamically use SITE_URL
-        reset_url = f"http://localhost:3000/reset-password/{urlsafe_base64_encode(str(user.id).encode())}/{token}/"
-        send_password_reset_email.delay(user.email, reset_url, user.full_name)
-
-        return {"message": "Reset email sent"}
 
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
