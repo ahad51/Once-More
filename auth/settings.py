@@ -185,9 +185,9 @@ DJANGO_ADMIN_URL='http://127.0.0.1:8000/admin/login/?next=/admin/'
 
 
 AUTHENTICATION_BACKENDS = [
-    'authent.authentication.EmailBackend',  # Path to your custom backend
-    'django.contrib.auth.backends.ModelBackend',  # Keep the default backend for fallback
+    'django.contrib.auth.backends.ModelBackend', 
+    'authent.authentication.TeacherAuthenticationBackend'
 ]
 
 
-AUTH_USER_MODEL = 'authent.CustomUser'
+

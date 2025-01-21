@@ -1,13 +1,22 @@
-# auth_/authentication.py
-from django.contrib.auth.backends import ModelBackend
+from django.contrib.auth.backends import BaseBackend
+from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
+from .models import Teacher
 
-class EmailBackend(ModelBackend):
+class TeacherAuthenticationBackend(BaseBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         try:
-            # Check if the user exists using email
-            user = get_user_model().objects.get(email=username)
-            if user.check_password(password):
-                return user
-        except get_user_model().DoesNotExist:
+            # First, check if a teacher exists with the provided username (email)
+            teacher = Teacher.objects.get(email=username)
+
+            # Check the provided password
+            if teacher.check_password(password):
+                # Return the associated CustomUser instance
+                return teacher.user
+        except Teacher.DoesNotExist:
+            # If the teacher doesn't exist, return None
+            return None
+        except ObjectDoesNotExist:
+            # If there's an issue with the object retrieval
             return None
