@@ -162,6 +162,7 @@ SITE_URL = "http://127.0.0.1:8000"
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://18.175.90.214"
 ]
 
 # Debugging: Uncomment for testing purposes only (do not use in production)
