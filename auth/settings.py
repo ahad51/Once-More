@@ -173,6 +173,8 @@ CORS_ALLOW_ALL_ORIGINS = True
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'default_if_missing')
 STRIPE_PUBLISHABLE_KEY=os.getenv('STRIPE_PUBLISHABLE_KEY', 'default_if_missing')
 
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
