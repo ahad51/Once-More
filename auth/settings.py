@@ -53,9 +53,9 @@ INSTALLED_APPS = [
     'topicTasks',
     'addTasks',
     'cpd',
-    'work'
+    'work',
+    'custom_admin',
 ]
-
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # Ensure CORS middleware is loaded first
     'django.middleware.security.SecurityMiddleware',

@@ -6,35 +6,33 @@ from addTasks.models import AddTask
 class TopicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Topics
-        fields = ['title']  # Changed from 'name' to 'title'
+        fields = ['title']
 
 class AddTaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = AddTask
-        fields = ['title']  # Changed from 'name' to 'title'
+        fields = ['title']
 
 class TaskSerializer(serializers.ModelSerializer):
-    topic = TopicSerializer()  # Nested TopicSerializer for the topic title
-    task = AddTaskSerializer()  # Nested AddTaskSerializer for the task title
+    topic = TopicSerializer()
+    task = AddTaskSerializer()
 
     class Meta:
         model = Task
-        fields = ['id', 'name', 'description', 'links', 'image', 'downloadable_resources', 'topic', 'task']
+        fields = ['id', 'name', 'description', 'links', 'image', 'downloadable_resources', 'video', 'topic', 'task']  # Added 'video'
 
     def to_representation(self, instance):
-        # Get the default representation
         representation = super().to_representation(instance)
-        
-        # Structure the output as per your requirement
         return {
-            'topic': representation['topic']['title'],  # Just topic title
+            'topic': representation['topic']['title'],
             'task': {
-                'title': representation['task']['title'],  # Task title
-                'id': representation['id'],  # Task ID
-                'name': representation['name'],  # Task name
+                'title': representation['task']['title'],
+                'id': representation['id'],
+                'name': representation['name'],
                 'description': representation['description'],
                 'links': representation['links'],
                 'image': representation['image'],
-                'downloadable_resources': representation['downloadable_resources']
+                'downloadable_resources': representation['downloadable_resources'],
+                'video': representation['video']  # Added 'video'
             }
         }

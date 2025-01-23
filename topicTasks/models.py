@@ -4,15 +4,17 @@ from addTasks.models import AddTask
 
 class Task(models.Model):
     topic = models.ForeignKey(Topics, on_delete=models.CASCADE)
-    task = models.ForeignKey(AddTask, on_delete=models.CASCADE ,default=1)
+    task = models.ForeignKey(AddTask, on_delete=models.CASCADE, default=1)
     name = models.CharField(max_length=255, default='Untitled')
     description = models.TextField(default='Default description text', blank=True, null=True)
     links = models.TextField(default='links', blank=True, null=True)
     image = models.ImageField(upload_to='activities/images/', blank=True, null=True)
     downloadable_resources = models.FileField(upload_to='activities/resources/', blank=True, null=True)
+    video = models.FileField(upload_to='activities/videos/', blank=True, null=True)  # New video field
 
     def __str__(self):
         return self.name
+
 
     @staticmethod
     def get_initial_tasks():
