@@ -15,6 +15,33 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_decode
 import logging
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated
+
+class MeView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure that only authenticated users can access
+
+    def get(self, request):
+        user = request.user  # The authenticated user
+
+        # If the user is a school admin
+        if user.is_school_admin:
+            return Response({
+                "role": "school_admin",
+                "school_admin_name": user.full_name,
+                "admin_email": user.email,
+            }, status=status.HTTP_200_OK)
+
+        # If the user is a teacher
+        elif user.is_teacher:
+            return Response({
+                "role": "teacher",
+                "teacher_name": user.full_name,
+                "teacher_email": user.email,
+            }, status=status.HTTP_200_OK)
+
+        # If the user is neither a teacher nor a school admin
+        return Response({"detail": "User is not a teacher or school admin."}, status=status.HTTP_400_BAD_REQUEST)
+
 
 from .models import Teacher
 
@@ -60,55 +87,53 @@ class LoginView(APIView):
         password = request.data.get("password")
         role = request.data.get("role")  # Optional: for frontend role checking
 
-        # Debugging step: Log incoming data
         print(f"Email: {email}, Password: {password}, Role: {role}")
 
-        # Try to find a CustomUser first
         user = User.objects.filter(email=email).first()
 
-        if user:
-            # Check if the password is correct for CustomUser
-            if user.check_password(password):  # Password validation for CustomUser
-                print(f"CustomUser {email} logged in successfully.")  # Debug log
-                if role == 'teacher' and user.is_teacher:
-                    refresh = RefreshToken.for_user(user)
-                    return Response({
-                        "message": "Teacher logged in successfully",
-                        "access": str(refresh.access_token),
-                        "refresh": str(refresh),
-                    }, status=status.HTTP_200_OK)
-                elif role == 'school_admin' and user.is_school_admin:
-                    refresh = RefreshToken.for_user(user)
-                    return Response({
-                        "message": "School Admin logged in successfully",
-                        "access": str(refresh.access_token),
-                        "refresh": str(refresh),
-                    }, status=status.HTTP_200_OK)
-                else:
-                    return Response({"detail": "Invalid role for this user."}, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                print("CustomUser password mismatch.")
-                return Response({"detail": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
+        if user and user.check_password(password):
+            print(f"CustomUser {email} logged in successfully.")  
+            refresh = RefreshToken.for_user(user)
+            
+            response_data = {
+            "message": "School Admin logged in successfully",
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "message": "Login successful",
+            }
 
-        # If no CustomUser, check if Teacher exists
+            if role == 'teacher' and user.is_teacher:
+                response_data["teacher_info"] = {
+                    "teacher_name": user.full_name,
+                    "email": user.email                }
+                return Response(response_data, status=status.HTTP_200_OK)
+
+            elif role == 'school_admin' and user.is_school_admin:
+                response_data["school_admin"] = {
+                    "School_admin_name": user.full_name,
+                    "admin_email": user.email,
+                }
+                return Response(response_data, status=status.HTTP_200_OK)
+
+            return Response({"detail": "Invalid role for this user."}, status=status.HTTP_400_BAD_REQUEST)
+
         teacher = Teacher.objects.filter(email=email).first()
+        if teacher and teacher.check_password(password):
+            print(f"Teacher {email} logged in successfully.")  
+            refresh = RefreshToken.for_user(teacher)
+            
+            return Response({
+                "message": "Teacher logged in successfully",
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "teacher_info": {
+                    "teacher_name": teacher.full_name,
+                    "teacher_email": teacher.email,
+                }
+            }, status=status.HTTP_200_OK)
 
-        if teacher:
-            # Check if the password is correct for Teacher
-            if teacher.check_password(password):  # Password validation for Teacher
-                print(f"Teacher {email} logged in successfully.")  # Debug log
-                refresh = RefreshToken.for_user(teacher)
-                return Response({
-                    "message": "Teacher logged in successfully",
-                    "access": str(refresh.access_token),
-                    "refresh": str(refresh),
-                }, status=status.HTTP_200_OK)
-            else:
-                print("Teacher password mismatch.")
-                return Response({"detail": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # If neither user nor teacher exists, return error
         return Response({"detail": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 
@@ -131,3 +156,32 @@ class PasswordResetConfirmView(APIView):
             return Response({"message": "Password reset successfully."}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class MeView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure that only authenticated users can access
+
+    def get(self, request):
+        user = request.user  # The authenticated user
+
+        # If the user is a school admin and is active
+        if user.is_school_admin:
+            if not user.is_active:
+                return Response({"detail": "School admin account is inactive."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                "role": "school_admin",
+                "school_admin_name": user.full_name,
+                "admin_email": user.email,
+            }, status=status.HTTP_200_OK)
+
+        # If the user is a teacher (skip is_active check for teachers)
+        elif user.is_teacher:
+            # Skip the is_active check for teachers
+            return Response({
+                "role": "teacher",
+                "teacher_name": user.full_name,
+                "teacher_email": user.email,
+            }, status=status.HTTP_200_OK)
+
+        # If the user is neither a teacher nor a school admin
+        return Response({"detail": "User is not a teacher or school admin."}, status=status.HTTP_400_BAD_REQUEST)
+

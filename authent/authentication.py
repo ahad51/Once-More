@@ -20,3 +20,24 @@ class TeacherAuthenticationBackend(BaseBackend):
         except ObjectDoesNotExist:
             # If there's an issue with the object retrieval
             return None
+
+
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.exceptions import AuthenticationFailed
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class CustomJWTAuthentication(JWTAuthentication):
+    def get_user(self, validated_token):
+        user = super().get_user(validated_token)  # Get user from token
+        
+        # Skip 'is_active' check for teachers
+        if user.is_teacher:
+            return user
+        
+        # Check if user is active for others (e.g., school admins)
+        if not user.is_active:
+            raise AuthenticationFailed('User is inactive')
+        
+        return user

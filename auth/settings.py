@@ -174,6 +174,7 @@ STRIPE_PUBLISHABLE_KEY=os.getenv('STRIPE_PUBLISHABLE_KEY', 'default_if_missing')
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'authent.authentication.CustomJWTAuthentication'
     ],
 }
 DJANGO_ADMIN_URL='http://127.0.0.1:8000/admin/login/?next=/admin/'

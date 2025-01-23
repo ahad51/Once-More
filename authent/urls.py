@@ -4,7 +4,8 @@ from .views import (
     LoginView,
     ForgotPasswordView,
     PasswordResetConfirmView,
-    VerifyEmailView
+    VerifyEmailView,
+    MeView  
 )
 
 urlpatterns = [
@@ -13,4 +14,5 @@ urlpatterns = [
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot-password'),
     path('password-reset-confirm/<str:uid>/<str:token>/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
     path('verify-email/<str:uid>/<str:token>/', VerifyEmailView.as_view(), name='verify-email'),
+    path('me/', MeView.as_view(), name='user-me'),  # Add the 'me' endpoint
 ]
