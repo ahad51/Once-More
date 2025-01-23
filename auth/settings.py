@@ -153,7 +153,7 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_TIMEZONE = 'UTC'
 
 # Site URL for local development
-SITE_URL = "http://127.0.0.1:8000"
+SITE_URL = "http://localhost:3000"
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
@@ -174,7 +174,6 @@ STRIPE_PUBLISHABLE_KEY=os.getenv('STRIPE_PUBLISHABLE_KEY', 'default_if_missing')
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'authent.authentication.CustomJWTAuthentication'
     ],
 }
 DJANGO_ADMIN_URL='http://127.0.0.1:8000/admin/login/?next=/admin/'

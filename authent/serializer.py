@@ -59,7 +59,7 @@ class UserSignupSerializer(serializers.Serializer):
             token = token_generator.make_token(user)
 
             # Dynamically use SITE_URL
-            verification_url = f"{settings.SITE_URL}/api/verify-email/{urlsafe_base64_encode(str(user.id).encode())}/{token}/"
+            verification_url = f"{settings.SITE_URL}/email-verification/{urlsafe_base64_encode(str(user.id).encode())}/{token}/"
             send_email_verification.delay(user.email, verification_url)
 
         return user
