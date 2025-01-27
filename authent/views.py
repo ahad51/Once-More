@@ -85,53 +85,66 @@ class LoginView(APIView):
     def post(self, request):
         email = request.data.get("email")
         password = request.data.get("password")
-        role = request.data.get("role")  # Optional: for frontend role checking
-
-        print(f"Email: {email}, Password: {password}, Role: {role}")
+        role = request.data.get("role")  # Expected role from the frontend
 
         user = User.objects.filter(email=email).first()
 
+        # If user is found in CustomUser model
         if user and user.check_password(password):
-            print(f"CustomUser {email} logged in successfully.")  
-            refresh = RefreshToken.for_user(user)
-            
-            response_data = {
-            "message": "School Admin logged in successfully",
-                "access": str(refresh.access_token),
-                "refresh": str(refresh),
-                "message": "Login successful",
-            }
+            # Check if the role matches the user's role
+            if role == "school_admin" and user.is_school_admin:
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    "message": "Login successful",
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh),
+                    "data": {
+                        "id": user.id,
+                        "name": user.full_name,
+                        "email": user.email,
+                        "role": "school_admin",
+                    }
+                }, status=status.HTTP_200_OK)
 
-            if role == 'teacher' and user.is_teacher:
-                response_data["teacher_info"] = {
-                    "teacher_name": user.full_name,
-                    "email": user.email                }
-                return Response(response_data, status=status.HTTP_200_OK)
+            elif role == "teacher" and user.is_teacher:
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    "message": "Login successful",
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh),
+                    "data": {
+                        "id": user.id,
+                        "name": user.full_name,
+                        "email": user.email,
+                        "role": "teacher",
+                    }
+                }, status=status.HTTP_200_OK)
 
-            elif role == 'school_admin' and user.is_school_admin:
-                response_data["school_admin"] = {
-                    "School_admin_name": user.full_name,
-                    "admin_email": user.email,
-                }
-                return Response(response_data, status=status.HTTP_200_OK)
-
+            # Role mismatch case
             return Response({"detail": "Invalid role for this user."}, status=status.HTTP_400_BAD_REQUEST)
 
+        # If user is not found in CustomUser, check the Teacher model
         teacher = Teacher.objects.filter(email=email).first()
         if teacher and teacher.check_password(password):
-            print(f"Teacher {email} logged in successfully.")  
-            refresh = RefreshToken.for_user(teacher)
-            
-            return Response({
-                "message": "Teacher logged in successfully",
-                "access": str(refresh.access_token),
-                "refresh": str(refresh),
-                "teacher_info": {
-                    "teacher_name": teacher.full_name,
-                    "teacher_email": teacher.email,
-                }
-            }, status=status.HTTP_200_OK)
+            # Check if the role matches teacher's role
+            if role == "teacher":
+                refresh = RefreshToken.for_user(teacher)
+                return Response({
+                    "message": "Login successful",
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh),
+                    "data": {
+                        "id": teacher.id,
+                        "name": teacher.full_name,
+                        "email": teacher.email,
+                        "role": "teacher",
+                    }
+                }, status=status.HTTP_200_OK)
 
+            # Role mismatch case
+            return Response({"detail": "Invalid role for this user."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Invalid credentials
         return Response({"detail": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
 
 
