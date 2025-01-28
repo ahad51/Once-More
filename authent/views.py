@@ -181,20 +181,23 @@ class MeView(APIView):
             if not user.is_active:
                 return Response({"detail": "School admin account is inactive."}, status=status.HTTP_400_BAD_REQUEST)
             return Response({
+                "data":{
                 "role": "school_admin",
                 "school_admin_name": user.full_name,
                 "admin_email": user.email,
+                }
             }, status=status.HTTP_200_OK)
 
         # If the user is a teacher (skip is_active check for teachers)
         elif user.is_teacher:
             # Skip the is_active check for teachers
             return Response({
+                "data":{
                 "role": "teacher",
                 "teacher_name": user.full_name,
                 "teacher_email": user.email,
+                }
             }, status=status.HTTP_200_OK)
 
-        # If the user is neither a teacher nor a school admin
         return Response({"detail": "User is not a teacher or school admin."}, status=status.HTTP_400_BAD_REQUEST)
 
