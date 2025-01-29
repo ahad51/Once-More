@@ -2,6 +2,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from payments.models import Subscription
 from .serializer import (
     UserSignupSerializer,
     ForgotPasswordSerializer, 
@@ -180,24 +181,28 @@ class MeView(APIView):
         if user.is_school_admin:
             if not user.is_active:
                 return Response({"detail": "School admin account is inactive."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Fetch the subscription status
+            subscription = Subscription.objects.filter(user=user).first()
+            subscription_status = subscription.is_active if subscription else False
+            
             return Response({
-                "data":{
-                "role": "school_admin",
-                "school_admin_name": user.full_name,
-                "admin_email": user.email,
+                "data": {
+                    "role": "school_admin",
+                    "name": user.full_name,
+                    "email": user.email,
+                    "subscription_status": subscription_status,
                 }
             }, status=status.HTTP_200_OK)
 
         # If the user is a teacher (skip is_active check for teachers)
         elif user.is_teacher:
-            # Skip the is_active check for teachers
             return Response({
-                "data":{
-                "role": "teacher",
-                "teacher_name": user.full_name,
-                "teacher_email": user.email,
+                "data": {
+                    "role": "teacher",
+                    "name": user.full_name,
+                    "email": user.email,
                 }
             }, status=status.HTTP_200_OK)
 
-        return Response({"detail": "User is not a teacher or school admin."}, status=status.HTTP_400_BAD_REQUEST)
-
+        return Response({"detail": "User is not a teacher or school admin."}, status)
