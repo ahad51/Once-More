@@ -17,33 +17,6 @@ from django.utils.http import urlsafe_base64_decode
 import logging
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
-
-class MeView(APIView):
-    permission_classes = [IsAuthenticated]  # Ensure that only authenticated users can access
-
-    def get(self, request):
-        user = request.user  # The authenticated user
-
-        # If the user is a school admin
-        if user.is_school_admin:
-            return Response({
-                "role": "school_admin",
-                "school_admin_name": user.full_name,
-                "admin_email": user.email,
-            }, status=status.HTTP_200_OK)
-
-        # If the user is a teacher
-        elif user.is_teacher:
-            return Response({
-                "role": "teacher",
-                "teacher_name": user.full_name,
-                "teacher_email": user.email,
-            }, status=status.HTTP_200_OK)
-
-        # If the user is neither a teacher nor a school admin
-        return Response({"detail": "User is not a teacher or school admin."}, status=status.HTTP_400_BAD_REQUEST)
-
-
 from .models import Teacher
 
 User = get_user_model()
