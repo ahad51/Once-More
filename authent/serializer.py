@@ -179,3 +179,16 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         user.set_password(data["password"])
         user.save()
         return {"message": "Password updated"}
+
+class ChangePasswordSerializer(serializers.Serializer):
+    current_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        # Validate that the current password and new password are provided
+        if not data.get("current_password"):
+            raise serializers.ValidationError("Current password is required.")
+        if not data.get("new_password"):
+            raise serializers.ValidationError("New password is required.")
+        
+        return data
