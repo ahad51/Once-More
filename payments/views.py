@@ -23,6 +23,8 @@ from django.contrib.contenttypes.models import ContentType
 
 CustomUser = get_user_model()
 
+
+
 class SubscriptionView(APIView):
     def post(self, request):
         email = request.data.get("email")
@@ -37,17 +39,26 @@ class SubscriptionView(APIView):
             if not user:
                 username = email.split('@')[0]
                 user = CustomUser.objects.create_user(username=username, email=email)
-            
+
+            # Check if the user already has an active subscription
+            existing_subscription = Subscription.objects.filter(user=user).first()
+            if existing_subscription:
+                return Response(
+                    {"error": "User already has an active subscription"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
             # Make the user an admin
-            user.is_staff = True  # User becomes an admin
-            user.is_superuser = False  # Not a superuser
+            user.is_staff = True
+            user.is_superuser = False
             user.save()
 
             # Assign permissions to add, change, and view Teacher
             content_type = ContentType.objects.get_for_model(Teacher)
-            permissions = Permission.objects.filter(content_type=content_type, codename__in=[
-                "add_teacher", "change_teacher", "view_teacher"
-            ])
+            permissions = Permission.objects.filter(
+                content_type=content_type,
+                codename__in=["add_teacher", "change_teacher", "view_teacher"]
+            )
             user.user_permissions.add(*permissions)
 
             # Step 2: Create Stripe customer and subscription
@@ -72,7 +83,9 @@ class SubscriptionView(APIView):
             )
 
         except Exception as e:
+            logger.error(f"Error processing subscription: {str(e)}")
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
     def put(self, request):
