@@ -172,6 +172,7 @@ class MeView(APIView):
 
             subscription = Subscription.objects.filter(user=user).first()
             subscription_status = subscription.is_active if subscription else False
+            subscription_id = subscription.stripe_subscription_id if subscription else None
 
             return Response({
                 "data": {
@@ -179,6 +180,7 @@ class MeView(APIView):
                     "name": user.full_name,
                     "email": user.email,
                     "subscription_status": subscription_status,
+                    "subscription_id": subscription_id,
                 }
             }, status=status.HTTP_200_OK)
 
@@ -192,8 +194,6 @@ class MeView(APIView):
             }, status=status.HTTP_200_OK)
 
         return Response({"detail": "User is not a teacher or school admin."}, status=status.HTTP_400_BAD_REQUEST)
-
-
 
 class ChangePasswordView(APIView):
         permission_classes = [IsAuthenticated]
