@@ -26,19 +26,6 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 # Custom authentication backend for teachers
-class TeacherAuthenticationBackend(BaseBackend):
-    def authenticate(self, request, username=None, password=None, **kwargs):
-        try:
-            # First, check if a teacher exists with the provided username (email)
-            teacher = Teacher.objects.get(email=username)
-
-            # Check the provided password
-            if teacher.check_password(password):
-                return teacher.user  # Return the associated CustomUser instance
-        except Teacher.DoesNotExist:
-            return None
-        except ObjectDoesNotExist:
-            return None
 
 # Custom JWT Authentication Class to allow inactive teachers
 class CustomJWTAuthentication(JWTAuthentication):
