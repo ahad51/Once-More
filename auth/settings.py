@@ -162,8 +162,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://18.175.90.214"
 ]
 
-# Debugging: Uncomment for testing purposes only (do not use in production)
-# CORS_ALLOW_ALL_ORIGINS = True
+
 
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -178,9 +177,6 @@ REST_FRAMEWORK = {
 }
 DJANGO_ADMIN_URL='http://127.0.0.1:8000/admin/login/?next=/admin/'
 
-
-# CELERY_TASK_ALWAYS_EAGER = True
-# CELERY_TASK_EAGER_PROPAGATES = True
 
 
 
